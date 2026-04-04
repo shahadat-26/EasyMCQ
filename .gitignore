@@ -1,0 +1,47 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
+
+# NuGet
+*.nupkg
+**/packages/*
+!**/packages/build/
+
+# Node
+node_modules/
+npm-debug.log
+
+# Angular
+dist/
+.angular/
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment files with secrets
+.env
+.env.local
+.env.production.local
+
+# Claude
+.claude/

@@ -1,0 +1,135 @@
+<div class="min-h-screen flex items-center justify-center bg-gray-50">
+  <div class="max-w-md w-full space-y-8">
+    <div>
+      <h2 class="mt-6 text-center text-3xl font-extrabold text-navy-900">
+        Create your account
+      </h2>
+      <p class="mt-2 text-center text-sm text-gray-600">
+        Or
+        <a routerLink="/login" class="font-medium text-navy-600 hover:text-navy-500">
+          sign in to existing account
+        </a>
+      </p>
+    </div>
+    <form class="mt-8 space-y-6" [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+      @if (error) {
+        <div class="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
+          {{ error }}
+        </div>
+      }
+
+      <div class="space-y-4">
+        <div>
+          <label for="name" class="block text-sm font-medium text-gray-700">
+            Full Name
+          </label>
+          <input
+            id="name"
+            name="name"
+            type="text"
+            formControlName="name"
+            required
+            class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-navy-500 focus:border-navy-500 sm:text-sm"
+            placeholder="Full Name"
+          />
+          @if (registerForm.get('name')?.invalid && registerForm.get('name')?.touched) {
+            <p class="mt-1 text-sm text-red-600">Name must be at least 3 characters</p>
+          }
+        </div>
+
+        <div>
+          <label for="email" class="block text-sm font-medium text-gray-700">
+            Email address
+          </label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            formControlName="email"
+            required
+            class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-navy-500 focus:border-navy-500 sm:text-sm"
+            placeholder="Email address"
+          />
+          @if (registerForm.get('email')?.invalid && registerForm.get('email')?.touched) {
+            <p class="mt-1 text-sm text-red-600">Please enter a valid email</p>
+          }
+        </div>
+
+        <div>
+          <label for="password" class="block text-sm font-medium text-gray-700">
+            Password
+          </label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            formControlName="password"
+            required
+            class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-navy-500 focus:border-navy-500 sm:text-sm"
+            placeholder="Password"
+          />
+          @if (registerForm.get('password')?.invalid && registerForm.get('password')?.touched) {
+            <p class="mt-1 text-sm text-red-600">Password must be at least 6 characters</p>
+          }
+        </div>
+
+        <div>
+          <label for="confirmPassword" class="block text-sm font-medium text-gray-700">
+            Confirm Password
+          </label>
+          <input
+            id="confirmPassword"
+            name="confirmPassword"
+            type="password"
+            formControlName="confirmPassword"
+            required
+            class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-navy-500 focus:border-navy-500 sm:text-sm"
+            placeholder="Confirm Password"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Register as
+          </label>
+          <div class="grid grid-cols-2 gap-3">
+            <label class="flex items-center justify-center px-4 py-2 border rounded-md cursor-pointer transition-colors"
+                   [class.border-navy-500]="registerForm.get('role')?.value === UserRole.Student"
+                   [class.bg-navy-50]="registerForm.get('role')?.value === UserRole.Student"
+                   [class.border-gray-300]="registerForm.get('role')?.value !== UserRole.Student">
+              <input
+                type="radio"
+                formControlName="role"
+                [value]="UserRole.Student"
+                class="sr-only"
+              />
+              <span class="text-sm font-medium">Student</span>
+            </label>
+            <label class="flex items-center justify-center px-4 py-2 border rounded-md cursor-pointer transition-colors"
+                   [class.border-navy-500]="registerForm.get('role')?.value === UserRole.Teacher"
+                   [class.bg-navy-50]="registerForm.get('role')?.value === UserRole.Teacher"
+                   [class.border-gray-300]="registerForm.get('role')?.value !== UserRole.Teacher">
+              <input
+                type="radio"
+                formControlName="role"
+                [value]="UserRole.Teacher"
+                class="sr-only"
+              />
+              <span class="text-sm font-medium">Teacher</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <button
+          type="submit"
+          [disabled]="registerForm.invalid || isLoading"
+          class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-navy-600 hover:bg-navy-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-navy-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {{ isLoading ? 'Creating account...' : 'Create account' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

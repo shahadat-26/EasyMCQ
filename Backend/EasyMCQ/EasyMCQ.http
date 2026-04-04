@@ -1,0 +1,6 @@
+@EasyMCQ_HostAddress = http://localhost:5062
+
+GET {{EasyMCQ_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

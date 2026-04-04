@@ -1,0 +1,299 @@
+-- Users table
+CREATE TABLE IF NOT EXISTS "Users" (
+    "Id" SERIAL PRIMARY KEY,
+    "Name" VARCHAR(100) NOT NULL,
+    "Email" VARCHAR(255) NOT NULL UNIQUE,
+    "PasswordHash" TEXT NOT NULL,
+    "Role" VARCHAR(50) NOT NULL,
+    "CreatedAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Courses table
+CREATE TABLE IF NOT EXISTS "Courses" (
+    "Id" SERIAL PRIMARY KEY,
+    "Name" VARCHAR(200) NOT NULL,
+    "Description" VARCHAR(500),
+    "TeacherId" INTEGER NOT NULL,
+    "CreatedAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "IsActive" BOOLEAN NOT NULL DEFAULT TRUE,
+    CONSTRAINT "FK_Courses_Users_TeacherId" FOREIGN KEY ("TeacherId") REFERENCES "Users" ("Id") ON DELETE RESTRICT
+);
+
+-- Enrollments table
+CREATE TABLE IF NOT EXISTS "Enrollments" (
+    "Id" SERIAL PRIMARY KEY,
+    "StudentId" INTEGER NOT NULL,
+    "CourseId" INTEGER NOT NULL,
+    "EnrolledAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "IsActive" BOOLEAN NOT NULL DEFAULT TRUE,
+    CONSTRAINT "FK_Enrollments_Users_StudentId" FOREIGN KEY ("StudentId") REFERENCES "Users" ("Id") ON DELETE CASCADE,
+    CONSTRAINT "FK_Enrollments_Courses_CourseId" FOREIGN KEY ("CourseId") REFERENCES "Courses" ("Id") ON DELETE CASCADE,
+    CONSTRAINT "UQ_Enrollments_StudentId_CourseId" UNIQUE ("StudentId", "CourseId")
+);
+
+-- Exams table
+CREATE TABLE IF NOT EXISTS "Exams" (
+    "Id" SERIAL PRIMARY KEY,
+    "Title" VARCHAR(200) NOT NULL,
+    "Description" VARCHAR(500),
+    "CourseId" INTEGER NOT NULL,
+    "ScheduledStartTime" TIMESTAMP NOT NULL,
+    "ScheduledEndTime" TIMESTAMP NOT NULL,
+    "DurationInMinutes" INTEGER NOT NULL,
+    "TotalMarks" INTEGER NOT NULL,
+    "PassingMarks" INTEGER NOT NULL,
+    "CreatedAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "IsPublished" BOOLEAN NOT NULL DEFAULT FALSE,
+    CONSTRAINT "FK_Exams_Courses_CourseId" FOREIGN KEY ("CourseId") REFERENCES "Courses" ("Id") ON DELETE CASCADE
+);
+
+-- Questions table
+CREATE TABLE IF NOT EXISTS "Questions" (
+    "Id" SERIAL PRIMARY KEY,
+    "ExamId" INTEGER NOT NULL,
+    "Text" TEXT NOT NULL,
+    "Marks" INTEGER NOT NULL,
+    "OrderNumber" INTEGER NOT NULL,
+    CONSTRAINT "FK_Questions_Exams_ExamId" FOREIGN KEY ("ExamId") REFERENCES "Exams" ("Id") ON DELETE CASCADE
+);
+
+-- Options table
+CREATE TABLE IF NOT EXISTS "Options" (
+    "Id" SERIAL PRIMARY KEY,
+    "QuestionId" INTEGER NOT NULL,
+    "Text" TEXT NOT NULL,
+    "IsCorrect" BOOLEAN NOT NULL DEFAULT FALSE,
+    "OrderNumber" INTEGER NOT NULL,
+    CONSTRAINT "FK_Options_Questions_QuestionId" FOREIGN KEY ("QuestionId") REFERENCES "Questions" ("Id") ON DELETE CASCADE
+);
+
+-- StudentExams table
+CREATE TABLE IF NOT EXISTS "StudentExams" (
+    "Id" SERIAL PRIMARY KEY,
+    "StudentId" INTEGER NOT NULL,
+    "ExamId" INTEGER NOT NULL,
+    "StartedAt" TIMESTAMP,
+    "SubmittedAt" TIMESTAMP,
+    "TotalScore" INTEGER NOT NULL DEFAULT 0,
+    "IsPassed" BOOLEAN NOT NULL DEFAULT FALSE,
+    "Status" VARCHAR(50) NOT NULL DEFAULT 'NotStarted',
+    CONSTRAINT "FK_StudentExams_Users_StudentId" FOREIGN KEY ("StudentId") REFERENCES "Users" ("Id") ON DELETE CASCADE,
+    CONSTRAINT "FK_StudentExams_Exams_ExamId" FOREIGN KEY ("ExamId") REFERENCES "Exams" ("Id") ON DELETE CASCADE,
+    CONSTRAINT "UQ_StudentExams_StudentId_ExamId" UNIQUE ("StudentId", "ExamId")
+);
+
+-- StudentAnswers table
+CREATE TABLE IF NOT EXISTS "StudentAnswers" (
+    "Id" SERIAL PRIMARY KEY,
+    "StudentExamId" INTEGER NOT NULL,
+    "QuestionId" INTEGER NOT NULL,
+    "SelectedOptionId" INTEGER,
+    "IsCorrect" BOOLEAN NOT NULL DEFAULT FALSE,
+    "MarksObtained" INTEGER NOT NULL DEFAULT 0,
+    CONSTRAINT "FK_StudentAnswers_StudentExams_StudentExamId" FOREIGN KEY ("StudentExamId") REFERENCES "StudentExams" ("Id") ON DELETE CASCADE,
+    CONSTRAINT "FK_StudentAnswers_Questions_QuestionId" FOREIGN KEY ("QuestionId") REFERENCES "Questions" ("Id") ON DELETE CASCADE,
+    CONSTRAINT "FK_StudentAnswers_Options_SelectedOptionId" FOREIGN KEY ("SelectedOptionId") REFERENCES "Options" ("Id") ON DELETE SET NULL
+);
+
+-- Notifications table
+CREATE TABLE IF NOT EXISTS "Notifications" (
+    "Id" SERIAL PRIMARY KEY,
+    "UserId" INTEGER NOT NULL,
+    "Title" VARCHAR(255) NOT NULL,
+    "Message" TEXT NOT NULL,
+    "Type" VARCHAR(50) NOT NULL,
+    "IsRead" BOOLEAN NOT NULL DEFAULT FALSE,
+    "CreatedAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "ReadAt" TIMESTAMP,
+    CONSTRAINT "FK_Notifications_Users_UserId" FOREIGN KEY ("UserId") REFERENCES "Users" ("Id") ON DELETE CASCADE
+);
+
+-- Create indexes for better performance
+CREATE INDEX "IX_Courses_TeacherId" ON "Courses" ("TeacherId");
+CREATE INDEX "IX_Enrollments_StudentId" ON "Enrollments" ("StudentId");
+CREATE INDEX "IX_Enrollments_CourseId" ON "Enrollments" ("CourseId");
+CREATE INDEX "IX_Exams_CourseId" ON "Exams" ("CourseId");
+CREATE INDEX "IX_Questions_ExamId" ON "Questions" ("ExamId");
+CREATE INDEX "IX_Options_QuestionId" ON "Options" ("QuestionId");
+CREATE INDEX "IX_StudentExams_StudentId" ON "StudentExams" ("StudentId");
+CREATE INDEX "IX_StudentExams_ExamId" ON "StudentExams" ("ExamId");
+CREATE INDEX "IX_StudentAnswers_StudentExamId" ON "StudentAnswers" ("StudentExamId");
+CREATE INDEX "IX_StudentAnswers_QuestionId" ON "StudentAnswers" ("QuestionId");
+CREATE INDEX "IX_StudentAnswers_SelectedOptionId" ON "StudentAnswers" ("SelectedOptionId");
+CREATE INDEX "IX_Notifications_UserId" ON "Notifications" ("UserId");
+CREATE INDEX "IX_Users_Email" ON "Users" ("Email");
+
+-- Insert sample data (optional - for testing)
+-- Sample Teacher
+INSERT INTO "Users" ("Name", "Email", "PasswordHash", "Role", "CreatedAt")
+VALUES ('John Teacher', 'teacher@test.com', '$2a$11$rBNVqGsemX.5YTpVKPbVD.5kZj0TdVc8Cq0j/bLKwVb7EzOc6wKqC', 'Teacher', CURRENT_TIMESTAMP);
+-- Password: password123
+
+-- Sample Student
+INSERT INTO "Users" ("Name", "Email", "PasswordHash", "Role", "CreatedAt")
+VALUES ('Jane Student', 'student@test.com', '$2a$11$rBNVqGsemX.5YTpVKPbVD.5kZj0TdVc8Cq0j/bLKwVb7EzOc6wKqC', 'Student', CURRENT_TIMESTAMP);
+-- Password: password123
+
+-- Sample Course
+INSERT INTO "Courses" ("Name", "Description", "TeacherId", "CreatedAt", "IsActive")
+VALUES ('Introduction to Programming', 'Learn the basics of programming with this comprehensive course', 1, CURRENT_TIMESTAMP, TRUE);
+
+-- Sample Enrollment
+INSERT INTO "Enrollments" ("StudentId", "CourseId", "EnrolledAt", "IsActive")
+VALUES (2, 1, CURRENT_TIMESTAMP, TRUE);
+
+
+-- =====================================================
+-- PERMANENT FIX FOR TIMEZONE ISSUES (DHAKA TIMEZONE)
+-- =====================================================
+-- Run this script to permanently fix timezone handling
+-- This converts all timestamps to local time storage
+-- Author: Claude
+-- Date: December 2024
+-- Timezone: Asia/Dhaka (UTC+6)
+
+-- Step 1: Check current database timezone
+SHOW timezone;
+SELECT CURRENT_TIMESTAMP, LOCALTIMESTAMP;
+
+-- Step 2: Set database timezone to Dhaka
+ALTER DATABASE "EasyMCQ" SET timezone TO 'Asia/Dhaka';
+
+-- Step 3: First, rollback any failed transaction
+ROLLBACK;
+
+-- Step 4: Convert ALL timestamp columns to local time (without timezone)
+-- This prevents PostgreSQL from converting times to UTC
+-- Run each ALTER separately to identify any issues
+
+-- Convert Exams table timestamps
+ALTER TABLE "Exams"
+ALTER COLUMN "ScheduledStartTime" TYPE timestamp without time zone USING "ScheduledStartTime"::timestamp without time zone,
+ALTER COLUMN "ScheduledEndTime" TYPE timestamp without time zone USING "ScheduledEndTime"::timestamp without time zone,
+ALTER COLUMN "CreatedAt" TYPE timestamp without time zone USING "CreatedAt"::timestamp without time zone;
+
+-- Convert Users table timestamps (only CreatedAt exists)
+ALTER TABLE "Users"
+ALTER COLUMN "CreatedAt" TYPE timestamp without time zone USING "CreatedAt"::timestamp without time zone;
+
+-- Convert Courses table timestamps
+ALTER TABLE "Courses"
+ALTER COLUMN "CreatedAt" TYPE timestamp without time zone USING "CreatedAt"::timestamp without time zone;
+
+-- Convert Enrollments table timestamps
+ALTER TABLE "Enrollments"
+ALTER COLUMN "EnrolledAt" TYPE timestamp without time zone USING "EnrolledAt"::timestamp without time zone;
+
+-- Convert StudentExams table timestamps
+ALTER TABLE "StudentExams"
+ALTER COLUMN "StartedAt" TYPE timestamp without time zone USING "StartedAt"::timestamp without time zone,
+ALTER COLUMN "SubmittedAt" TYPE timestamp without time zone USING "SubmittedAt"::timestamp without time zone;
+
+-- Convert Notifications table timestamps
+ALTER TABLE "Notifications"
+ALTER COLUMN "CreatedAt" TYPE timestamp without time zone USING "CreatedAt"::timestamp without time zone,
+ALTER COLUMN "ReadAt" TYPE timestamp without time zone USING "ReadAt"::timestamp without time zone;
+
+-- Step 5: Verify the conversion
+SELECT
+    table_name,
+    column_name,
+    data_type
+FROM information_schema.columns
+WHERE table_schema = 'public'
+AND data_type LIKE '%timestamp%'
+ORDER BY table_name, column_name;
+
+-- Step 6: Update exam times to be available (for testing)
+UPDATE "Exams"
+SET
+    "ScheduledStartTime" = LOCALTIMESTAMP - INTERVAL '1 hour',
+    "ScheduledEndTime" = LOCALTIMESTAMP + INTERVAL '30 days'
+WHERE "IsPublished" = true;
+
+-- Step 7: Clean up any stuck exam attempts
+DELETE FROM "StudentAnswers"
+WHERE "StudentExamId" IN (
+    SELECT "Id" FROM "StudentExams"
+    WHERE "Status" IN (1, 2) -- NotStarted or InProgress
+);
+
+DELETE FROM "StudentExams"
+WHERE "Status" IN (1, 2);
+
+-- Step 8: Verify exam availability
+SELECT
+    "Id",
+    "Title",
+    "ScheduledStartTime",
+    "ScheduledEndTime",
+    LOCALTIMESTAMP as dhaka_time,
+    CASE
+        WHEN LOCALTIMESTAMP BETWEEN "ScheduledStartTime" AND "ScheduledEndTime"
+        THEN '✅ Available Now'
+        WHEN LOCALTIMESTAMP < "ScheduledStartTime"
+        THEN '⏰ Not Started Yet'
+        ELSE '❌ Expired'
+    END as status
+FROM "Exams"
+ORDER BY "Id";
+
+-- =====================================================
+-- HELPFUL QUERIES FOR EXAM MANAGEMENT
+-- =====================================================
+
+-- Make specific exam available immediately
+UPDATE "Exams"
+SET
+    "ScheduledStartTime" = LOCALTIMESTAMP,
+    "ScheduledEndTime" = LOCALTIMESTAMP + INTERVAL '7 days'
+WHERE "Id" = 8; -- Replace with your exam ID
+
+-- Check student enrollment status
+SELECT
+    e.*,
+    c."Name" as course_name,
+    u."Name" as student_name
+FROM "Enrollments" e
+JOIN "Courses" c ON e."CourseId" = c."Id"
+JOIN "Users" u ON e."StudentId" = u."Id"
+WHERE e."StudentId" = 4  -- Replace with actual student ID
+AND e."CourseId" = (SELECT "CourseId" FROM "Exams" WHERE "Id" = 8);
+
+-- View all exam attempts
+SELECT
+    se."Id",
+    u."Name" as student_name,
+    e."Title" as exam_title,
+    se."TotalScore",
+    e."TotalMarks",
+    se."IsPassed",
+    se."Status",
+    se."StartedAt",
+    se."SubmittedAt"
+FROM "StudentExams" se
+JOIN "Users" u ON se."StudentId" = u."Id"
+JOIN "Exams" e ON se."ExamId" = e."Id"
+ORDER BY se."SubmittedAt" DESC;
+
+-- Reset specific student's exam attempt
+DELETE FROM "StudentAnswers"
+WHERE "StudentExamId" IN (
+    SELECT "Id" FROM "StudentExams"
+    WHERE "StudentId" = 4 AND "ExamId" = 8
+);
+DELETE FROM "StudentExams"
+WHERE "StudentId" = 4 AND "ExamId" = 8;
+
+-- =====================================================
+-- IMPORTANT NOTES FOR DHAKA TIMEZONE
+-- =====================================================
+-- 1. Dhaka timezone is UTC+6 (Asia/Dhaka)
+-- 2. All timestamps are now stored as local Dhaka time
+-- 3. Backend code uses DateTime.Now (local time)
+-- 4. No timezone conversion happens in database
+-- 5. Times displayed will match your local Dhaka time
+
+
+
+
