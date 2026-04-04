@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://easymcq-api.onrender.com/api'
+  apiUrl: 'https://easymcqapi.onrender.com/api'
 };
